@@ -60,7 +60,7 @@
 | **背景削除** | ✅ | ISNet モデルによる標準的な背景切り抜き |
 | **Gemini 透かし** | ✅ | Gemini エクスポートから SynthID 透かしを除去 |
 | **NotebookLM 透かし** | ✅ | NotebookLM エクスポートからフッター透かしを除去 |
-| **100% クライアント側** | ✅ | 処理はページ内で行われ、通信は不要 |
+| **100% クライアント側** | ✅ | 画像はページ内に保持され、背景モデルは初回利用時に一度ダウンロードされます |
 | **多言語 UI** | ✅ | ワンクリックで EN, ID, CN, JP を切り替え |
 | **ダーク/ライトテーマ** | ✅ | 保存可能なテーマ切り替えトグル |
 
@@ -90,7 +90,7 @@ npm run dev
 
 ## <a id="installation"></a>インストール
 
-ソースからビルド（Node 18+）：
+ソースからビルド（Node 20.19+ または Node 22.12+）：
 
 ```bash
 git clone https://github.com/Curzyori/rm-bg.git
@@ -122,7 +122,7 @@ npm run preview
 
 ## <a id="license"></a>ライセンス
 
-MIT - <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a> を参照。
+AGPL-3.0-only - <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a> と <a href="public/THIRD_PARTY_NOTICES.md">サードパーティ通知</a>を参照。
 
 <p align="center">
   <sub>50 Projects Challenge の20番目のプロジェクトとして、**@Curzyori** が情熱を込めて開発</sub>

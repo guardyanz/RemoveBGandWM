@@ -1,5 +1,9 @@
-import { removeBackground, preload } from '@imgly/background-removal';
 import { createWatermarkEngine } from './lib/gemini-wm/sdk/browser.js';
+import {
+  BackgroundRemovalTimeoutError,
+  processImagePipeline,
+  removeBackgroundWithTimeout,
+} from './pipeline.js';
 
 const $ = (id) => document.getElementById(id);
 const drop = $('drop'), fileInput = $('file'), bar = $('bar'), barWrap = $('barWrap');
@@ -24,17 +28,20 @@ const i18n = {
     removing_bg: "Removing background...",
     removing_wm: "Stripping watermark...",
     done: "Done ✅",
+    warn_wm_failed: "Background removed, but watermark removal failed. The background-only result is available.",
     err_already: "An image has already been uploaded or is processing. Please refresh to upload a new one.",
     err_type: "Unsupported format. PNG/JPG/WebP only.",
     err_size: "File too large (max 20MB).",
     err_fail: "Failed: ",
+    err_bg_timeout: "The background model could not be loaded in time. Check your connection and try again.",
     loading_model: "Loading background removal model...",
     lnk_github: "GitHub",
     lnk_donate: "Donate",
+    lnk_notices: "Third-Party Notices",
     opt_bg: "Remove Background",
     opt_gemini: "Remove Gemini Watermark",
     opt_notebook: "Remove NotebookLM Watermark",
-    meta_license: "MIT License",
+    meta_license: "AGPL-3.0 License",
     meta_version: "Version 1.0.0"
   },
   id: {
@@ -48,17 +55,20 @@ const i18n = {
     removing_bg: "Menghapus background...",
     removing_wm: "Menghapus watermark...",
     done: "Selesai ✅",
+    warn_wm_failed: "Background berhasil dihapus, tetapi watermark gagal diproses. Hasil tanpa background tetap tersedia.",
     err_already: "Gambar sudah diupload atau sedang diproses. Silakan refresh untuk upload gambar baru.",
     err_type: "Format tidak didukung. PNG/JPG/WebP saja.",
     err_size: "File terlalu besar (max 20MB).",
     err_fail: "Gagal: ",
+    err_bg_timeout: "Model background tidak berhasil dimuat tepat waktu. Periksa koneksi lalu coba lagi.",
     loading_model: "Memuat model background removal...",
     lnk_github: "GitHub",
     lnk_donate: "Donasi",
+    lnk_notices: "Lisensi Pihak Ketiga",
     opt_bg: "Hapus Background",
     opt_gemini: "Hapus Watermark Gemini",
     opt_notebook: "Hapus Watermark NotebookLM",
-    meta_license: "Lisensi MIT",
+    meta_license: "Lisensi AGPL-3.0",
     meta_version: "Versi 1.0.0"
   },
   zh: {
@@ -72,17 +82,20 @@ const i18n = {
     removing_bg: "正在去除背景...",
     removing_wm: "正在移除水印...",
     done: "处理完成 ✅",
+    warn_wm_failed: "背景已移除，但水印处理失败。仍可下载仅移除背景的结果。",
     err_already: "已上传或正在处理图片。请刷新页面以上传新图片。",
     err_type: "不支持的文件格式。仅支持 PNG/JPG/WebP。",
     err_size: "文件太大 (最大 20MB)。",
     err_fail: "处理失败: ",
+    err_bg_timeout: "背景模型未能及时加载。请检查网络连接后重试。",
     loading_model: "正在加载背景消除模型...",
     lnk_github: "GitHub",
     lnk_donate: "Donate",
+    lnk_notices: "第三方声明",
     opt_bg: "去除背景",
     opt_gemini: "移除 Gemini 水印",
     opt_notebook: "移除 NotebookLM 水印",
-    meta_license: "MIT 许可证",
+    meta_license: "AGPL-3.0 许可证",
     meta_version: "版本 1.0.0"
   },
   ja: {
@@ -96,17 +109,20 @@ const i18n = {
     removing_bg: "背景を消去中...",
     removing_wm: "透かしを除去中...",
     done: "完了 ✅",
+    warn_wm_failed: "背景は削除されましたが、透かし処理に失敗しました。背景削除のみの結果をダウンロードできます。",
     err_already: "すでに画像がアップロードされているか、処理中です。新しい画像をアップロードするにはページを更新してください。",
     err_type: "サポートされていない形式です。PNG/JPG/WebPのみ対応。",
     err_size: "ファイルサイズが大きすぎます (最大20MB)。",
     err_fail: "エラー: ",
+    err_bg_timeout: "背景モデルを時間内に読み込めませんでした。接続を確認して再試行してください。",
     loading_model: "背景消去モデルを読み込み中...",
     lnk_github: "GitHub",
     lnk_donate: "Donate",
+    lnk_notices: "サードパーティ通知",
     opt_bg: "背景を消去",
     opt_gemini: "Geminiの透かしを除去",
     opt_notebook: "NotebookLMの透かしを除去",
-    meta_license: "MITライセンス",
+    meta_license: "AGPL-3.0ライセンス",
     meta_version: "バージョン 1.0.0"
   }
 };
@@ -137,9 +153,9 @@ function t(key) {
   return i18n[currentLang][key] || i18n['en'][key] || key;
 }
 
-function setStatus(msg, isErr = false) {
+function setStatus(msg, isErr = false, isWarning = false) {
   statusEl.textContent = msg;
-  statusEl.className = 'status' + (isErr ? ' err' : '');
+  statusEl.className = 'status' + (isErr ? ' err' : isWarning ? ' warn' : '');
   progressSection.classList.toggle('active', !!msg);
 }
 
@@ -193,35 +209,39 @@ async function handleFile(file) {
 
   try {
     beforeImg.src = URL.createObjectURL(file);
-
-    // Step 1: remove background (optional)
-    let sourceBlob = file;
-    if (doBg) {
-      setStatus(t('removing_bg'));
-      sourceBlob = await removeBackground(file, {
-        model: 'isnet_fp16',
-        output: { format: 'image/png' },
-        progress: (key, current, total) => {
-          if (total) setProgress(5 + Math.round((current / total) * 55));
-        },
-      });
-      setProgress(60);
-    }
-
-    // Step 2: strip watermark engine (only if Gemini or NotebookLM selected)
-    let outBlob;
-    if (doGemini || doNotebook) {
-      setStatus(t('removing_wm'));
-      const img = await blobToImage(sourceBlob);
-      const engine = await createWatermarkEngine();
-      const canvas = await engine.removeWatermarkFromImage(img);
-      setProgress(90);
-      outBlob = await canvasToBlob(canvas);
-    } else {
-      // only bg, no watermark
-      outBlob = sourceBlob;
-      setProgress(90);
-    }
+    const result = await processImagePipeline({
+      input: file,
+      removeBackgroundRequested: doBg,
+      watermarkRequested: doGemini || doNotebook,
+      onStage: (stage) => {
+        if (stage === 'background') {
+          setStatus(t('loading_model'));
+        } else {
+          setStatus(t('removing_wm'));
+          setProgress(doBg ? 60 : 10);
+        }
+      },
+      removeBackground: async (input) => {
+        const { removeBackground } = await import('@imgly/background-removal');
+        return removeBackgroundWithTimeout(input, {
+          removeBackgroundFn: removeBackground,
+          onProgress: (key, current, total) => {
+            if (String(key).startsWith('compute:')) setStatus(t('removing_bg'));
+            else setStatus(t('loading_model'));
+            if (total) setProgress(5 + Math.round((current / total) * 55));
+          },
+        });
+      },
+      removeWatermark: async (input) => {
+        const img = await blobToImage(input);
+        const engine = await createWatermarkEngine();
+        const canvas = await engine.removeWatermarkFromImage(img);
+        return canvasToBlob(canvas);
+      },
+    });
+    const outBlob = result.blob;
+    if (result.watermarkError) console.warn('Watermark removal failed; using background-only result.', result.watermarkError);
+    setProgress(90);
 
     afterImg.src = URL.createObjectURL(outBlob);
     currentBlob = outBlob;
@@ -232,12 +252,13 @@ async function handleFile(file) {
     download.download = outName;
     download.style.display = 'inline-block';
     setProgress(100);
-    setStatus(t('done'));
+    setStatus(result.watermarkError ? t('warn_wm_failed') : t('done'), false, !!result.watermarkError);
   } catch (e) {
     console.error(e);
     isProcessing = false;
     currentBlob = null;
-    setStatus(t('err_fail') + (e?.message || e), true);
+    if (e instanceof BackgroundRemovalTimeoutError) setStatus(t('err_bg_timeout'), true);
+    else setStatus(t('err_fail') + (e?.message || e), true);
     setProgress(0);
   }
 }
@@ -294,7 +315,3 @@ const ghNum = $('ghNum');
     ghNum.textContent = String(stargazers_count);
   } catch { /* stay 0 */ }
 })();
-
-// Warm up model on page load so first upload doesn't wait for download
-setStatus(t('preloading'));
-preload({ model: 'isnet_fp16' }).then(() => { setStatus(''); }).catch(() => { /* silent */ });

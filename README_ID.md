@@ -60,7 +60,7 @@ Hapus background gambar dan hilangkan watermark Gemini / NotebookLM secara lokal
 | **Hapus Background** | ✅ | Potong background menggunakan model ISNet |
 | **Watermark Gemini** | ✅ | Hapus watermark SynthID dari ekspor Gemini |
 | **Watermark NotebookLM** | ✅ | Hapus watermark footer dari ekspor NotebookLM |
-| **100% Client-Side** | ✅ | Pemrosesan di dalam halaman, tidak butuh internet |
+| **100% Client-Side** | ✅ | Gambar tetap di halaman; model background diunduh sekali saat pertama dipakai |
 | **UI Multi-Bahasa** | ✅ | EN, ID, CN, JP dengan satu klik selektor |
 | **Tema Dark/Light** | ✅ | Switcher tema yang tersimpan otomatis |
 
@@ -90,7 +90,7 @@ Lalu buka URL localhost yang tercetak.
 
 ## <a id="installation"></a>Instalasi
 
-Build dari source (Node 18+):
+Build dari source (Node 20.19+ atau Node 22.12+):
 
 ```bash
 git clone https://github.com/Curzyori/rm-bg.git
@@ -122,7 +122,7 @@ Jika Anda merasa project ini bermanfaat, mohon pertimbangkan untuk memberikan �
 
 ## <a id="license"></a>Lisensi
 
-MIT - lihat <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a>.
+AGPL-3.0-only - lihat <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a> dan <a href="public/THIRD_PARTY_NOTICES.md">pemberitahuan pihak ketiga</a>.
 
 <p align="center">
   <sub>Dibuat dengan dedikasi sebagai project ke-20 dari 50 Projects Challenge oleh **@Curzyori**</sub>

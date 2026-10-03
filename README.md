@@ -60,7 +60,7 @@ Remove image background and strip Gemini / NotebookLM watermarks locally in your
 | **Background Removal** | ✅ | Standard background cutout via ISNet model |
 | **Gemini Watermark** | ✅ | Strip SynthID watermark from Gemini exports |
 | **NotebookLM Watermark** | ✅ | Strip footer watermark from NotebookLM exports |
-| **100% Client-Side** | ✅ | Processing happens in-page, no network required |
+| **100% Client-Side** | ✅ | Images stay in-page; the background model downloads once on first use |
 | **Multi-Language UI** | ✅ | EN, ID, CN, JP with one-click selector |
 | **Dark/Light Theme** | ✅ | Persistent theme switcher |
 
@@ -90,7 +90,7 @@ Then open the printed localhost URL.
 
 ## <a id="installation"></a>Installation
 
-Build from source (Node 18+):
+Build from source (Node 20.19+ or Node 22.12+):
 
 ```bash
 git clone https://github.com/Curzyori/rm-bg.git
@@ -122,7 +122,7 @@ If you find this project useful, please consider giving it a ⭐ Star or 🍴 Fo
 
 ## <a id="license"></a>License
 
-MIT - see <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a>.
+AGPL-3.0-only - see <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a> and <a href="public/THIRD_PARTY_NOTICES.md">third-party notices</a>.
 
 <p align="center">
   <sub>Built with passion as the 20th project of the 50 Projects Challenge by **@Curzyori**</sub>

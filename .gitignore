@@ -29,3 +29,23 @@ dist/
 PLAN.md
 SUMMARY.md
 TASK.md
+
+# Local credentials and machine-specific settings
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.jks
+*.keystore
+*.pfx
+*.private.jwk.json
+keystore.properties
+local.properties
+
+# Regenerable knowledge graph cache
+**/graphify-out/cache/

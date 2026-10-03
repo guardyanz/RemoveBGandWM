@@ -60,7 +60,7 @@
 | **背景去除** | ✅ | 使用 ISNet 模型进行标准的背景抠图 |
 | **Gemini 水印** | ✅ | 清除 Gemini 导出的 SynthID 水印 |
 | **NotebookLM 水印** | ✅ | 清除 NotebookLM 导出的页脚水印 |
-| **100% 客户端运行** | ✅ | 所有处理都在页面内进行，无需网络传输 |
+| **100% 客户端运行** | ✅ | 图片始终留在页面内；背景模型会在首次使用时下载一次 |
 | **多语言界面** | ✅ | 支持 EN、ID、CN、JP 一键切换 |
 | **深色/浅色主题** | ✅ | 支持自动保存的主题切换 |
 
@@ -90,7 +90,7 @@ npm run dev
 
 ## <a id="installation"></a>安装
 
-从源码构建（Node 18+）：
+从源码构建（Node 20.19+ 或 Node 22.12+）：
 
 ```bash
 git clone https://github.com/Curzyori/rm-bg.git
@@ -122,7 +122,7 @@ npm run preview
 
 ## <a id="license"></a>许可证
 
-MIT - 详见 <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a>。
+AGPL-3.0-only - 详见 <a href="https://github.com/Curzyori/rm-bg/blob/main/LICENSE">LICENSE</a> 和 <a href="public/THIRD_PARTY_NOTICES.md">第三方声明</a>。
 
 <p align="center">
   <sub>作为 50 Projects Challenge 的第 20 个项目，由 **@Curzyori** 用心打造</sub>
